@@ -14,6 +14,14 @@ function MSE(input,expected)
 	return (math.pow(input-expected,2)/2)
 end
 
+function inargs(tosearch)
+	local h = false
+	for i=1,#arg do
+		if(arg[i]==tosearch) then h = true end
+	end
+	return h
+end
+
 weights = {
 	save = function(name,array)
 		local file = io.open(name, "w")
@@ -28,7 +36,7 @@ weights = {
 	end	
 }
 
-
+-- MATRIX LIBRARY, FOR MATRICES
 m = {
 	diff = function(ar1,ar2,abs)
 		local error_array = {}
@@ -168,4 +176,15 @@ end
 
 function hr()
 	print("-----------------------------------")
+end
+
+function die ()
+  os.exit(1)
+end
+
+function getcontent(file)
+	local f = io.open(file, "r")
+    local content = f:read("*all")
+    f:close()
+    return content
 end

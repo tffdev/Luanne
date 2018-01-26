@@ -5,16 +5,14 @@ Micro Neural Net Framework [For NLPS, Daniel Brier]
 Help:
 	Synapse indexing is as follows: 
 		syns[weight_set][number_of_proceeding_neuron][number of synapse]
-	
-
 ]]--
 
 -- Requirements
-reqs = {
-	"json",
-	"funcs"
-}
+reqs = {"json","funcs","nnfuncs"}
 for i=1,#reqs do require(reqs[i]) end
+
+-- Help
+if(inargs("-h")) then print(getcontent("help")) die() end
 
 --inits()
 syns = {}
@@ -27,102 +25,72 @@ exp_out = {0,1,0,1}
 
 -- PARAMS
 -- Structure (inputs, [hiddens], output)
-STRUCTURE = {2,2,1}
-learning_rate = 0.1
-
+STRUCTURE = {2,3,1}
+learning_rate = 0.5
 
 -- Create synapse matrix
 for w=1,#STRUCTURE-1 do
 	syns[w] = m.random(STRUCTURE[w],STRUCTURE[w+1])
 end
 
-
--- LOGIC
-function forward(input)
-	final_output = {}
-	layers[1] = input
-	-- for each layer of synapses
-	for s=1, #syns do
-		-- init new table
-		layers[s+1] = {}
-		-- for every neuron's valency
-		for i=1,#syns[s] do
-			-- set value of neuron to dot product of previous layer and weight matrix
-			layers[s+1][i] = sig(m.dot(layers[s],syns[s][i]))
-		end
-	end
-	final_output = layers[#layers][1]
-	return final_output
-end
-
-function backward(output,expoutindex,ln_rate)
-	deltas={}
-	-- CALCULATE FIRST LAYER DELTAS
-	deltas[#syns]={}
-	for i=1,#syns[#syns] do
-		deltas[#syns][i]={}
-		for j=1,#syns[i][#syns[i]] do
-			-- deltas[weight layer][neuron output layer][index of weight]
-			deltas[#syns][i][j] = -(output-exp_out[expoutindex]) * (math.exp(output)/math.pow(math.exp(output)+1,2)) * (layers[#layers-1][j]) * ln_rate
-		end
-	end
-
-	-- Calculate hidden layer deltas
-	-- deltas[#STRUCTURE-1]={}
-	-- for i=1,STRUCTURE[#STRUCTURE-1]*STRUCTURE[#STRUCTURE] do
-	-- 	for j=1,#syns[1][i] do
-	-- 		deltas[#STRUCTURE-1][j] = (output-exp_out[expoutindex]) * (1-math.pow(output,2)) * (layers[#layers-1][j])
-	-- 	end
-	-- end
-	return deltas
-end
-
-function addweights(m1,m2)
-	local output={}
-	for i=1,#m1 do
-		output[i]={}
-		for j=1,#m1[i] do
-			output[i][j]={}
-			for k=1,#m1[i][j] do
-				if(m2[i]~=nil and m2[i][j]~=nil and m2[i][j][k]~=nil) then
-					output[i][j][k]=m1[i][j][k]+m2[i][j][k]
-				else
-					output[i][j][k]=m1[i][j][k]
-				end
-			end
-		end
-	end
-	return output
+-- Print synapses
+if(inargs("-s")) then 
+	print("synapses start value:") print_r(syns) 
 end
 
 
 
-for iteration=1,10 do
+
+
+-- INIT FOR LEARNING LOOP
+it_count=0
+print("== Learning begin! ==")
+hr()
+
+
+-- LEARNING ULTRALOOP
+for iteration=1,100000 do
 	-- ONE STEP
-	outputs_to_check={}
 	changes_matrix = {}
 	for w=1,#STRUCTURE-1 do
 		changes_matrix[w] = m.zeros(STRUCTURE[w],STRUCTURE[w+1])
 	end
-	print("synapses start value:")
-	print_r(syns)
-	print("Pass "..iteration)
+
+	errs=0
 	for i=1,#inp do
-		hr()
-		print("inputs:	",inp[i][1],inp[i][2])
-		print("expected:",exp_out[i])
+
+		-- Forward pass per input/output set
 		out = forward(inp[i])
-		print("output: ",out)
-		outputs_to_check[i]=out
-		print("MSE Error:",MSE(out,exp_out[i]))
-		-- print("wdeltas:")
-		local deltas = backward(out,i,learning_rate)
-		-- print_r(deltas)
+		errs=errs+MSE(out,exp_out[i]);
+		local deltas = backward(out,i,exp_out,learning_rate)
 		changes_matrix = addweights(changes_matrix,deltas)
+
+		-- Debug printouts
+		if(inargs("-s")) then
+			print("inputs:	",inp[i][1],inp[i][2])
+			print("expected:",exp_out[i])
+			print("output: ",out)
+			print("Pass "..iteration, "Error: "..MSE(out,exp_out[i]))
+			print_r(deltas)
+		end
 	end
+	if(it_count%20000==0) then
+		print("Average Error over dataset: "..errs/#inp)
+	end
+	it_count=it_count+1
 	syns = addweights(syns,changes_matrix)
 end
 
+
+-- final results
 hr()
-print("changed synapses")
-print_r(addweights(syns,changes_matrix))
+if(inargs("-s")) then
+	print("synapses end value")
+	print_r(addweights(syns,changes_matrix))
+end
+
+print("check:")
+print("0,0 -> 0:",forward(inp[1]))
+print("0,1 -> 1:",forward(inp[2]))
+print("1,1 -> 0:",forward(inp[3]))
+print("1,0 -> 1:",forward(inp[4]))
