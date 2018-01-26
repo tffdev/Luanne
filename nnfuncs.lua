@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 function sig(x)
 	return 1/(1+math.exp(-1*x))
 end
@@ -88,6 +89,50 @@ function backward_hidden(syn_lyr,ln_rate)
 		end
 	end
 
+=======
+-- LOGIC
+function forward(input)
+	final_output = {}
+	layers[1] = input
+	-- for each layer of synapses
+	for s=1, #syns do
+		-- init new table
+		layers[s+1] = {}
+		-- for every neuron's valency
+		for i=1,#syns[s] do
+			-- set value of neuron to dot product of previous layer and weight matrix
+			layers[s+1][i] = sig(m.dot(layers[s],syns[s][i]))
+		end
+	end
+	final_output = layers[#layers][1]
+	return final_output
+end
+
+function backward(output, expected_output_index, expected_output, ln_rate)
+	deltas={}
+
+	-- CALCULATE FIRST LAYER DELTAS
+	-- init array's group-dimensions
+	deltas[#syns]={}
+
+	for i=1,#syns[#syns] do
+		-- init array X-dimensions
+		deltas[#syns][i]={}
+
+		for j=1,#syns[i] do
+			-- deltas[weight layer][neuron output layer][index of weight]
+			deltas[#syns][i][j] = -(output-expected_output[expected_output_index]) * sigderiv(output) * (layers[#layers-1][j]) * ln_rate
+		end
+	end
+
+	-- Calculate hidden layer deltas
+	-- deltas[#STRUCTURE-1]={}
+	-- for i=1,STRUCTURE[#STRUCTURE-1]*STRUCTURE[#STRUCTURE] do
+	-- 	for j=1,#syns[1][i] do
+	-- 		deltas[#STRUCTURE-1][j] = (output-exp_out[expoutindex]) * (1-math.pow(output,2)) * (layers[#layers-1][j])
+	-- 	end
+	-- end
+>>>>>>> a06e477... how does this even work
 	return deltas
 end
 
@@ -109,6 +154,7 @@ function addweights(m1,m2)
 	return output
 end
 
+<<<<<<< HEAD
 function subweights(m1,m2)
 	local output={}
 	for i=1,#m1 do
@@ -216,4 +262,8 @@ function ungen_ff_alphahot(input_table)
 		end
 	end
 	return al_num[cur_i]
+=======
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
+>>>>>>> a06e477... how does this even work
 end

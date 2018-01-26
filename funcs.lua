@@ -24,6 +24,14 @@ function inargs(tosearch)
 	return h
 end
 
+function inargs(tosearch)
+	local h = false
+	for i=1,#arg do
+		if(arg[i]==tosearch) then h = true end
+	end
+	return h
+end
+
 weights = {
 	save = function(name,array)
 		local file = io.open(name, "w")
@@ -198,9 +206,13 @@ function getcontent(file)
     local content = f:read("*all")
     f:close()
     return content
+<<<<<<< HEAD
 end
 
 function file_exists(name)
    local f=io.open(name,"r")
    if f~=nil then io.close(f) return true else return false end
 end
+=======
+end
+>>>>>>> a06e477... how does this even work
