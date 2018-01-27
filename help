@@ -1,9 +1,16 @@
+  _                                 
+ | |   _   _  __ _ _ __  _ __   ___ 
+ | |  | | | |/ _` | '_ \| '_ \ / _ \
+ | |__| |_| | (_| | | | | | | |  __/
+ |_____\__,_|\__,_|_| |_|_| |_|\___|
+======================================
+A mini neural net framework made by TFCAT
+for an a-level project.
 
-=== Luanne ===
-A mini neural net framework made by dan
+arguments:
+-h	help
+-s	show all steps (don't use with high iteration count!!)
+-sh	show start and end synapse values
 
-	arguments:
-	-h	help
-	-s	show synapses
-
-	that's all i can think of rn please dont be mad
+Synapse indexing is as follows: 
+	syns[weight layer][neuron_going_to][neuron_coming_from]

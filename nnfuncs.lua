@@ -28,7 +28,7 @@ function backward(output, expected_output_index, expected_output, ln_rate)
 		deltas[#syns][i]={}
 
 		for j=1,#syns[i] do
-			-- deltas[weight layer][neuron output layer][index of weight]
+			-- deltas[weight layer][going_to][coming_from]
 			deltas[#syns][i][j] = -(output-expected_output[expected_output_index]) * sigderiv(output) * (layers[#layers-1][j]) * ln_rate
 		end
 	end
