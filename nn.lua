@@ -2,63 +2,72 @@
 
 Micro Neural Net Framework [For NLPS, Daniel Brier]
 --------------------------------
-Help:
-	Synapse indexing is as follows: 
-		syns[weight layer][going_to][coming_from]
+Synapse indexing is as follows:
+	syns[weight layer][going_to][coming_from]
 ]]--
 
 -- Requirements
 reqs = {"json","funcs","nnfuncs","argcheck"}
 for i=1,#reqs do require(reqs[i]) end
 
-
 --Initialisations
 	syns = {}
 	layers = {}
+	gamma = {}
+	gamma["output"] = {}
+	gamma["hidden"] = {}
 	math.randomseed(123)
 
 -- DATASET
 	inp = {{0,0},{0,1},{1,1},{1,0}}
-	exp_out = {0,1,0,1}
+	-- exp_out = {{0,0},{1,1},{0,0},{1,1}}
+	exp_out = {{0},{1},{0},{1}}
 
 -- PARAMS
 	-- Structure (inputs, [hiddens], output)
-	STRUCTURE = {2,2,1}
-	learning_rate = 1
-	
+	STRUCTURE 		= {2,10,1}
+	learning_rate 	= 1
+	iterations 		= 100000	
+	epochs 			= 5
+
+
+-- START PROCESS --
 -- Create synapse matrix
-for w=1,#STRUCTURE-1 do
-	syns[w] = m.random(STRUCTURE[w],STRUCTURE[w+1])
-end
+syns = createStructure(STRUCTURE)
 
 -- Print synapses
 if(inargs("-sh")) then 
 	print("synapses start value:") print_r(syns) 
 end
 
-
-
 -- INIT FOR LEARNING LOOP
 it_count=0
+epch=iterations/epochs
 print("== Learning begin! ==")
 hr()
 
 
+print("check:")
+for i=1,#inp do
+	local inputs = ""
+	print_r(forward(inp[i]))
+end
+
 -- LEARNING ULTRALOOP
-for iteration=1,10000 do
+for iteration=1,iterations do
 	-- ONE STEP
-	changes_matrix = {}
-	for w=1,#STRUCTURE-1 do
-		changes_matrix[w] = m.zeros(STRUCTURE[w],STRUCTURE[w+1])
-	end
+	-- Create changes matrix of structure full of zeros
+	changes_matrix = createStructure(STRUCTURE, true)
 
 	errs=0
 	for i=1,#inp do
 
-		-- Forward pass per input/output set
+		-- Forward pass per input/output set, return array of outputs
 		out = forward(inp[i])
-		errs = errs+MSE(out,exp_out[i]);
-		local deltas = backward(out,i,exp_out,learning_rate)
+		errs = errs + MSE(out,exp_out[i]);
+
+		-- Backwards pass
+		local deltas = backward(out,exp_out[i],learning_rate)
 		changes_matrix = addweights(changes_matrix,deltas)
 
 		-- Debug printouts
@@ -70,7 +79,7 @@ for iteration=1,10000 do
 			print_r(deltas)
 		end
 	end
-	if(it_count%2000==0) then
+	if(it_count%epch==0) then
 		print("Average Error over dataset: "..errs/#inp.."\r")
 	end
 	it_count=it_count+1
@@ -94,5 +103,6 @@ for i=1,#inp do
 		end
 		inputs=inputs..inp[i][j]
 	end
-	print(inputs.." -> "..exp_out[i]..":",forward(inp[i]))
+	print(inputs.." -> "..exp_out[i][1]..":",forward(inp[i])[1])
+	-- print_r(forward(inp[i]))
 end

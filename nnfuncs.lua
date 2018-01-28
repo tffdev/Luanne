@@ -12,24 +12,28 @@ function forward(input)
 			layers[s+1][i] = sig(m.dot(layers[s],syns[s][i]))
 		end
 	end
-	final_output = layers[#layers][1]
+	final_output = layers[#layers]
 	return final_output
 end
 
-function backward(output, expected_output_index, expected_output, ln_rate)
+function backward(output, expected_output, ln_rate)
 	deltas={}
 
 	-- CALCULATE FIRST LAYER DELTAS
 	-- init array's group-dimensions
 	deltas[#syns]={}
 
-	for i=1,#syns[#syns] do
+	-- syns[weight layer][going_to][coming_from]
+	-- For the length of the final layer
+	for i=1,#syns[#syns] do 
+
 		-- init array X-dimensions
 		deltas[#syns][i]={}
-
-		for j=1,#syns[i] do
+		-- For every output neuron
+		for j=1,#syns[#syns][i] do
 			-- deltas[weight layer][going_to][coming_from]
-			deltas[#syns][i][j] = -(output-expected_output[expected_output_index]) * sigderiv(output) * (layers[#layers-1][j]) * ln_rate
+			gamma["output"][i] = (output[i]-expected_output[i]) * dsig(output[i])
+			deltas[#syns][i][j] = -gamma["output"][i]* (layers[#layers-1][j]) * ln_rate
 		end
 	end
 
@@ -63,4 +67,20 @@ end
 
 function sleep(n)
   os.execute("sleep " .. tonumber(n))
+end
+
+function createStructure(struct,zeros)
+	zeros = false or zeros
+	local newstruct = {}
+	if(zeros) then
+		for w=1,#struct-1 do
+			newstruct[w] = m.zeros(struct[w],struct[w+1])
+		end
+		return newstruct
+	else
+		for w=1,#struct-1 do
+			newstruct[w] = m.random(struct[w],struct[w+1])
+		end
+		return newstruct
+	end
 end

@@ -2,7 +2,7 @@ function sig(x)
 	return 1/(1+math.exp(-x))
 end
 
-function sigderiv(x)
+function dsig(x)
 	return sig(x)*(1-sig(x))
 end
 
@@ -11,7 +11,11 @@ function relu(x)
 end
 
 function MSE(input,expected)
-	return (math.pow(input-expected,2)/2)
+	local total = 0
+	for i=1,#input do
+		total = total + (math.pow(input[i]-expected[i],2)/2)
+	end
+	return total
 end
 
 function inargs(tosearch)
@@ -66,7 +70,7 @@ m = {
 			for i=1,height do
 				local temp = {}
 				for j=1,width do
-					temp[j] = math.random()
+					temp[j] = math.random(-1000000,1000000)/1000000
 				end
 				table.insert(final, temp)
 			end
