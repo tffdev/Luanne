@@ -25,9 +25,9 @@ for i=1,#reqs do require(reqs[i]) end
 
 -- PARAMS
 	-- Structure (inputs, [hiddens], output)
-	STRUCTURE 		= {2,10,1}
+	STRUCTURE 		= {2,2,1}
 	learning_rate 	= 1
-	iterations 		= 100000	
+	iterations 		= 100000
 	epochs 			= 5
 
 
@@ -43,9 +43,6 @@ end
 -- INIT FOR LEARNING LOOP
 it_count=0
 epch=iterations/epochs
-print("== Learning begin! ==")
-hr()
-
 
 print("check:")
 for i=1,#inp do
@@ -54,6 +51,8 @@ for i=1,#inp do
 end
 
 -- LEARNING ULTRALOOP
+print("== Learning begin! ==")
+hr()
 for iteration=1,iterations do
 	-- ONE STEP
 	-- Create changes matrix of structure full of zeros
@@ -79,10 +78,11 @@ for iteration=1,iterations do
 			print_r(deltas)
 		end
 	end
-	if(it_count%epch==0) then
+	it_count=it_count+1
+	if(it_count%epch==0 or it_count==1) then
 		print("Average Error over dataset: "..errs/#inp.."\r")
 	end
-	it_count=it_count+1
+	
 	syns = addweights(syns,changes_matrix)
 end
 
@@ -103,6 +103,6 @@ for i=1,#inp do
 		end
 		inputs=inputs..inp[i][j]
 	end
-	print(inputs.." -> "..exp_out[i][1]..":",forward(inp[i])[1])
+	print(inputs.." -> "..exp_out[i][1]..":",forward(inp[i])[1],"-> "..round(forward(inp[i])[1]))
 	-- print_r(forward(inp[i]))
 end

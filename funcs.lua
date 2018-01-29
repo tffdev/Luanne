@@ -10,6 +10,14 @@ function relu(x)
 	if x < 0 then return 0 else return x end
 end
 
+function round(x)
+	if(x-math.floor(x)<0.5) then
+		return math.floor(x)
+	else
+		return math.ceil(x)
+	end
+end
+
 function MSE(input,expected)
 	local total = 0
 	for i=1,#input do
