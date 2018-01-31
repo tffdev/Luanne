@@ -1,5 +1,7 @@
 -- LOGIC
 function forward(input)
+
+	-- CHECK THIS FUNCTION WITH NEW SYNAPSE STRUCTURE
 	final_output = {}
 	layers[1] = input
 	-- for each layer of synapses
@@ -21,29 +23,62 @@ function backward(output, expected_output, ln_rate)
 
 	-- CALCULATE FIRST LAYER DELTAS
 	-- init array's group-dimensions
-	deltas[#syns]={}
-
-	-- syns[weight layer][going_to][coming_from]
+	deltas[#syns] = {}
+	gamma[#syns] = {}
+	-- syns[layer][going_to][coming_from]
 	-- For the length of the final layer
-	for i=1,#syns[#syns] do 
-
+	for p_to=1,#syns[#syns] do 
 		-- init array X-dimensions
-		deltas[#syns][i]={}
+		deltas[#syns][p_to]={}
+		gamma[#syns][p_to]={}
 		-- For every output neuron
-		for j=1,#syns[#syns][i] do
+		for p_from=1,#syns[#syns][p_to] do
 			-- deltas[weight layer][going_to][coming_from]
-			gamma["output"][i] = (output[i]-expected_output[i]) * dsig(output[i])
-			deltas[#syns][i][j] = -gamma["output"][i]* (layers[#layers-1][j]) * ln_rate
+			gamma[#syns][p_to][p_from] = (output[p_to]-expected_output[p_to]) * dsig(output[p_to])
+			deltas[#syns][p_to][p_from] = -gamma[#syns][p_to][p_from] * (layers[#layers-1][p_from]) * ln_rate
 		end
 	end
 
 	-- Calculate hidden layer deltas
-	-- deltas[#STRUCTURE-1]={}
-	-- for i=1,STRUCTURE[#STRUCTURE-1]*STRUCTURE[#STRUCTURE] do
-	-- 	for j=1,#syns[1][i] do
-	-- 		deltas[#STRUCTURE-1][j] = (output-exp_out[expoutindex]) * (1-math.pow(output,2)) * (layers[#layers-1][j])
-	-- 	end
-	-- end
+
+	
+	-- Summate gamma values for layer in front per neuron
+	-- summations = {}
+
+	-- for every layer of synapses (exc. output)
+	for layer = #syns-1,1, -1 do
+		local inp_str = ""
+		-- for i=1,#expected_output do
+		-- 	inp_str=inp_str.." "..expected_output[i]
+		-- end
+		-- print("altering layer "..layer.." on input "..inp_str)
+
+
+		gamma[layer] = {}
+		deltas[layer] = {}
+
+		for p_to=1,#syns[layer] do
+			gamma[layer][p_to] = {}
+			deltas[layer][p_to] = {}
+			for p_from=1,#syns[layer][p_to] do
+
+				local summation = 0
+				for i=1,#layers[layer+2] do
+					summation = summation + gamma[layer+1][i][p_from]
+				end
+				-- print("gamma:")
+				-- print_r(gamma)
+				-- print("summation for ".."H"..p_to..p_from..": "..summation)
+				-- for every weight
+				gamma[layer][p_to][p_from] = summation * dsig(layers[layer+1][p_from]) 
+
+				deltas[layer][p_to][p_from] = gamma[layer][p_to][p_from] * layers[layer][p_from] * ln_rate
+				-- print(layers[layer+1][p_from]..", "..p_from,"gamma: "..gamma[layer][p_to][p_from])
+			end
+		end
+	end
+
+
 	return deltas
 end
 

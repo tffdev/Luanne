@@ -50,6 +50,13 @@ weights = {
 
 -- MATRIX LIBRARY, FOR MATRICES
 m = {
+	summate = function(array)
+		local total = 0
+		for i=1,#array do
+			total = total + array[i]
+		end
+		return total
+	end,
 	diff = function(ar1,ar2,abs)
 		local error_array = {}
 		for i=1,#ar1[1] do
