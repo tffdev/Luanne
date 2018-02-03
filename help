@@ -8,7 +8,7 @@ A mini neural net framework made by TFCAT
 for an a-level project.
 
 arguments:
--h	help
+-h	help (shows this text)
 -s	show all steps (don't use with high iteration count!!)
 -sh	show start and end synapse values
 

@@ -19,12 +19,12 @@ for i=1,#reqs do require(reqs[i]) end
 -- DATASET
 	inp = {{0,0},{0,1},{1,1},{1,0}}
 	-- exp_out = {{0,0},{1,1},{0,0},{1,1}}
-	exp_out = {{1,1},{1,0},{0,0},{0,1}}
+	exp_out = {{0,0},{0,1},{0,0},{0,1}}
 
 -- PARAMS
 	-- Structure (inputs, [hiddens], output)
 	STRUCTURE 		= {2,2,2}
-	learning_rate 	= 0.8
+	learning_rate 	= 0.3
 	iterations 		= 10000
 	epochs 			= 5
 
@@ -65,7 +65,7 @@ for iteration=1,iterations do
 
 		-- Backwards pass
 		local deltas = backward(out,exp_out[i],learning_rate)
-		changes_matrix = addweights(changes_matrix,deltas)
+		syns = addweights(syns,deltas)
 
 		-- Debug printouts
 		if(inargs("-s")) then
@@ -80,7 +80,7 @@ for iteration=1,iterations do
 	if(it_count%epch==0 or it_count==1) then
 		print("Average Error over dataset: "..errs/#inp.."\r")
 	end
-	syns = addweights(syns,changes_matrix)
+	-- syns = addweights(syns,changes_matrix)
 end
 
 

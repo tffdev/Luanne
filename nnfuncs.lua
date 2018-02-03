@@ -20,7 +20,6 @@ end
 
 function backward(output, expected_output, ln_rate)
 	deltas={}
-
 	-- CALCULATE FIRST LAYER DELTAS
 	-- init array's group-dimensions
 	deltas[#syns] = {}
@@ -33,9 +32,10 @@ function backward(output, expected_output, ln_rate)
 		gamma[#syns][p_to]={}
 		-- For every output neuron
 		for p_from=1,#syns[#syns][p_to] do
+			-- print("first layer calc "..p_to.." "..p_from)
 			-- deltas[weight layer][going_to][coming_from]
-			gamma[#syns][p_to][p_from] = (output[p_to]-expected_output[p_to]) * dsig(output[p_to])
-			deltas[#syns][p_to][p_from] = -gamma[#syns][p_to][p_from] * (layers[#layers-1][p_from]) * ln_rate
+			gamma[#syns][p_to][p_from] = (output[p_to]-expected_output[p_to]) * dsig(output[p_to]) * (layers[#layers-1][p_from]) 
+			deltas[#syns][p_to][p_from] = -gamma[#syns][p_to][p_from] * ln_rate
 		end
 	end
 
@@ -48,32 +48,42 @@ function backward(output, expected_output, ln_rate)
 	-- for every layer of synapses (exc. output)
 	for layer = #syns-1,1, -1 do
 		local inp_str = ""
-		-- for i=1,#expected_output do
-		-- 	inp_str=inp_str.." "..expected_output[i]
-		-- end
+		for i=1,#expected_output do
+			inp_str=inp_str.." "..expected_output[i]
+		end
 		-- print("altering layer "..layer.." on input "..inp_str)
 
 
 		gamma[layer] = {}
 		deltas[layer] = {}
 
+		-- Calc gammas
 		for p_to=1,#syns[layer] do
 			gamma[layer][p_to] = {}
 			deltas[layer][p_to] = {}
 			for p_from=1,#syns[layer][p_to] do
-
+				-- CALLED FOR EVERY WEIGHT
+				-- summation of forward weight deltas
 				local summation = 0
 				for i=1,#layers[layer+2] do
-					summation = summation + gamma[layer+1][i][p_from]
+					summation = summation + gamma[layer+1][i][p_to]
 				end
-				-- print("gamma:")
-				-- print_r(gamma)
-				-- print("summation for ".."H"..p_to..p_from..": "..summation)
 				-- for every weight
-				gamma[layer][p_to][p_from] = summation * dsig(layers[layer+1][p_from]) 
+				gamma[layer][p_to][p_from] = summation * dsig(layers[layer+2][p_from])
 
+				-- print("from neuron "..p_from.." ("..layers[layer+1][p_from]..")","to neuron"..p_to.." ("..layers[layer+2][p_to]..")")
+				-- print("summation:"..summation,"gamma: "..gamma[layer][p_to][p_from])
+			end
+		end
+
+		-- print("gamma:")
+		-- print_r(gamma)
+
+		-- Calc deltas
+		for p_to=1,#syns[layer] do
+			deltas[layer][p_to] = {}
+			for p_from=1,#syns[layer][p_to] do
 				deltas[layer][p_to][p_from] = gamma[layer][p_to][p_from] * layers[layer][p_from] * ln_rate
-				-- print(layers[layer+1][p_from]..", "..p_from,"gamma: "..gamma[layer][p_to][p_from])
 			end
 		end
 	end
