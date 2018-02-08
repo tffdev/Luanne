@@ -13,20 +13,19 @@ for i=1,#reqs do require(reqs[i]) end
 -- Declarations
 	syns = {}
 	layers = {}
-	gamma = {}
+	gammas = {}
 	math.randomseed(123)
 
 -- DATASET
 	inp = {{0,0},{0,1},{1,1},{1,0}}
-	-- exp_out = {{0,0},{1,1},{0,0},{1,1}}
 	exp_out = {{0,0},{0,1},{0,0},{0,1}}
 
 -- PARAMS
 	-- Structure (inputs, [hiddens], output)
-	STRUCTURE 		= {2,2,2}
-	learning_rate 	= 0.3
+	STRUCTURE 		= {2,10,2}
+	learning_rate 	= 0.8
 	iterations 		= 10000
-	epochs 			= 5
+	epochs 			= 10
 
 
 -- START PROCESS --
@@ -40,7 +39,7 @@ end
 
 -- INIT FOR LEARNING LOOP
 it_count=0
-epch=iterations/epochs
+epch=math.floor(iterations/epochs)
 
 print("check:")
 for i=1,#inp do
@@ -61,11 +60,11 @@ for iteration=1,iterations do
 
 		-- Forward pass per input/output set, return array of outputs
 		out = forward(inp[i])
-		errs = errs + MSE(out,exp_out[i]);
+		errs = errs + (MSE(out,exp_out[i]))
 
 		-- Backwards pass
 		local deltas = backward(out,exp_out[i],learning_rate)
-		syns = addweights(syns,deltas)
+		changes_matrix = addweights(changes_matrix,deltas)
 
 		-- Debug printouts
 		if(inargs("-s")) then
@@ -80,7 +79,7 @@ for iteration=1,iterations do
 	if(it_count%epch==0 or it_count==1) then
 		print("Average Error over dataset: "..errs/#inp.."\r")
 	end
-	-- syns = addweights(syns,changes_matrix)
+	syns = addweights(syns,changes_matrix)
 end
 
 

@@ -1,16 +1,12 @@
 -- LOGIC
 function forward(input)
-
 	-- CHECK THIS FUNCTION WITH NEW SYNAPSE STRUCTURE
 	final_output = {}
 	layers[1] = input
 	-- for each layer of synapses
 	for s=1, #syns do
-		-- init new table
 		layers[s+1] = {}
-		-- for every neuron's valency
 		for i=1,#syns[s] do
-			-- set value of neuron to dot product of previous layer and weight matrix
 			layers[s+1][i] = sig(m.dot(layers[s],syns[s][i]))
 		end
 	end
@@ -21,74 +17,45 @@ end
 function backward(output, expected_output, ln_rate)
 	deltas={}
 	-- CALCULATE FIRST LAYER DELTAS
-	-- init array's group-dimensions
 	deltas[#syns] = {}
-	gamma[#syns] = {}
-	-- syns[layer][going_to][coming_from]
-	-- For the length of the final layer
-	for p_to=1,#syns[#syns] do 
-		-- init array X-dimensions
-		deltas[#syns][p_to]={}
-		gamma[#syns][p_to]={}
+	gammas[#layers] = {}
+
+	for p_to=1,#layers[#layers] do 
+		deltas[#syns][p_to] = {}
+		gammas[#layers][p_to] = ((2*#output)/4)*(output[p_to] - expected_output[p_to]) * dsig(output[p_to])
 		-- For every output neuron
-		for p_from=1,#syns[#syns][p_to] do
-			-- print("first layer calc "..p_to.." "..p_from)
-			-- deltas[weight layer][going_to][coming_from]
-			gamma[#syns][p_to][p_from] = (output[p_to]-expected_output[p_to]) * dsig(output[p_to]) * (layers[#layers-1][p_from]) 
-			deltas[#syns][p_to][p_from] = -gamma[#syns][p_to][p_from] * ln_rate
+		for p_from=1,#layers[#layers-1] do
+			deltas[#syns][p_to][p_from] = - gammas[#layers][p_to] * (layers[#layers][p_to]) * ln_rate
 		end
 	end
 
-	-- Calculate hidden layer deltas
-
-	
-	-- Summate gamma values for layer in front per neuron
-	-- summations = {}
-
-	-- for every layer of synapses (exc. output)
-	for layer = #syns-1,1, -1 do
-		local inp_str = ""
-		for i=1,#expected_output do
-			inp_str=inp_str.." "..expected_output[i]
-		end
-		-- print("altering layer "..layer.." on input "..inp_str)
-
-
-		gamma[layer] = {}
+	-- CALCULATE HIDDEN LAYER DELTAS
+	for layer = #syns-1,1,-1 do
+		-- print("doing layer "..layer)
+		gammas[layer+1] = {}
 		deltas[layer] = {}
 
-		-- Calc gammas
-		for p_to=1,#syns[layer] do
-			gamma[layer][p_to] = {}
-			deltas[layer][p_to] = {}
-			for p_from=1,#syns[layer][p_to] do
-				-- CALLED FOR EVERY WEIGHT
-				-- summation of forward weight deltas
-				local summation = 0
-				for i=1,#layers[layer+2] do
-					summation = summation + gamma[layer+1][i][p_to]
-				end
-				-- for every weight
-				gamma[layer][p_to][p_from] = summation * dsig(layers[layer+2][p_from])
+		-- Calc gammass for every neuron
+		for current_neuron=1,#layers[layer+1] do
+			-- print("p to "..current_neuron.." layer "..layer)
+			gammas[layer+1][current_neuron] = {}
+			deltas[layer][current_neuron] = {}
 
-				-- print("from neuron "..p_from.." ("..layers[layer+1][p_from]..")","to neuron"..p_to.." ("..layers[layer+2][p_to]..")")
-				-- print("summation:"..summation,"gamma: "..gamma[layer][p_to][p_from])
+			local summation = 0
+			for i=1,#layers[layer+2] do
+				summation = summation + (gammas[layer+2][i] * syns[layer+1][i][current_neuron])
 			end
+			gammas[layer+1][current_neuron] = summation * dsig(layers[layer+1][current_neuron])
 		end
 
-		-- print("gamma:")
-		-- print_r(gamma)
-
 		-- Calc deltas
-		for p_to=1,#syns[layer] do
+		for p_to=1,#syns[layer+1] do
 			deltas[layer][p_to] = {}
 			for p_from=1,#syns[layer][p_to] do
-				deltas[layer][p_to][p_from] = gamma[layer][p_to][p_from] * layers[layer][p_from] * ln_rate
+				deltas[layer][p_to][p_from] = gammas[layer+1][p_to] * layers[layer+1][p_from] * ln_rate
 			end
 		end
 	end
-
-
 	return deltas
 end
 

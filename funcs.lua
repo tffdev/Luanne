@@ -21,7 +21,7 @@ end
 function MSE(input,expected)
 	local total = 0
 	for i=1,#input do
-		total = total + (math.pow(input[i]-expected[i],2)/2)
+		total = total + (math.pow(input[i]-expected[i],2))/#input
 	end
 	return total
 end
