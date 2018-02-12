@@ -20,11 +20,11 @@ function backward(output, expected_output, ln_rate)
 	deltas[#syns] = {}
 	gammas[#layers] = {}
 
-	for p_to=1,#layers[#layers] do 
+	for p_to=1,STRUCTURE[#STRUCTURE] do 
 		deltas[#syns][p_to] = {}
 		gammas[#layers][p_to] = ((2*#output)/4)*(output[p_to] - expected_output[p_to]) * dsig(output[p_to])
 		-- For every output neuron
-		for p_from=1,#layers[#layers-1] do
+		for p_from=1,STRUCTURE[#STRUCTURE-1] do
 			deltas[#syns][p_to][p_from] = - gammas[#layers][p_to] * (layers[#layers][p_to]) * ln_rate
 		end
 	end
