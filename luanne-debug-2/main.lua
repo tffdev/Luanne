@@ -83,7 +83,10 @@ function love.draw()
 	end
 
 	-- DRAW
-	love.graphics.print("ERROR: "..errs/#inp,5,5)
+	local err = errs/#inp
+	love.graphics.setColor(255*(err*255), 255/(err*255), 0, 255)
+	love.graphics.print("ERROR: "..err,15,10)
+	love.graphics.setColor(255, 255, 255, 255)
 
 	for i=1,#outputs do
 		for j=1,#outputs[i] do
@@ -93,16 +96,19 @@ function love.draw()
 	end
 
 	-- Reset nodes button
-	if (draw_button(895,5,110,25,"Reset Nodes")) then
+	if (draw_button(400,5,110,25,"Reset Nodes")) then
 		resetnodes()
 		-- Actually reset values
 		-- syns = createStructure(STRUCTURE)
 	end
-	if (draw_button(895,35,110,25,"Turn off values")) then
+	if (draw_button(400,35,110,25,"Turn off values")) then
 		show_values = false
 	end
-	if (draw_button(895,65,110,25,"Turn on values")) then
+	if (draw_button(400,65,110,25,"Turn on values")) then
 		show_values = true
+	end
+	if(draw_button(400,95,110,25,"Reset Weights"))then
+		syns = createStructure(STRUCTURE)
 	end
 	
 
