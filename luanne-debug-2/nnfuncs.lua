@@ -80,11 +80,11 @@ function backward_hidden(syn_lyr,ln_rate)
 
 	-- update deltas
 	for i=1,#nodes[syn_lyr+1] do 
-		deltas[#syns][i] = deltas[#syns][i] or {}
+		deltas[syn_lyr][i] = deltas[syn_lyr][i] or {}
 		for j=1,#nodes[syn_lyr] do
 			-- for every synapse
-			local momentum = deltas[#syns][i][j] or 0
-			deltas[#syns][i][j] = gamma[syn_lyr+1][i] * (nodes[syn_lyr][j]) + momentum*momentum_multiplier
+			local momentum = deltas[syn_lyr][i][j] or 0
+			deltas[syn_lyr][i][j] = gamma[syn_lyr+1][i] * (nodes[syn_lyr][j]) + momentum*momentum_multiplier
 		end
 	end
 
