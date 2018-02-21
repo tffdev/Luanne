@@ -86,8 +86,27 @@ function love.draw()
 	local err = errs/#inp
 	love.graphics.setColor(255*(err*255), 255/(err*255), 0, 255)
 	love.graphics.print("ERROR: "..err,15,10)
-	love.graphics.setColor(255, 255, 255, 255)
 
+	-- accuracy
+	local accr = 0
+	local perc = 0
+	local perccount = 0
+	for i=1,#outputs do
+		for j=1,#outputs[i] do
+			perc = perc+math.abs(outputs[i][j]-exp_out[i][j])
+			perccount=perccount+1
+			-- for decimal_place=10,1,-1 do
+			-- 	if(exp_out[i][j] == round2(outputs[i][j],decimal_place))then
+			-- 		if(decimal_place<accr)then accr = decimal_place end
+			-- 		break
+			-- 	end
+			-- end
+		end
+	end
+
+	love.graphics.print("Accuracy: "..round2((1-perc/perccount)*100,2).."%",245,10)
+	love.graphics.setColor(255, 255, 255, 255)
+	
 	for i=1,#outputs do
 		for j=1,#outputs[i] do
 			love.graphics.print("Output"..i.."("..exp_out[i][j].."): "..round2(outputs[i][j],6),40+(j-1)*190,i*30)

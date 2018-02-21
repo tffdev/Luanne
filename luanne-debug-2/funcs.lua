@@ -1,5 +1,7 @@
 function round2(num, numDecimalPlaces)
-  return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
+	num = num*(math.pow(10,numDecimalPlaces))
+	num = math.floor(num+0.5)
+	return num/(math.pow(10,numDecimalPlaces))
 end
 
 function sleep(n)
