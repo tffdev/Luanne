@@ -179,18 +179,41 @@ function fullpass()
 	syns = subweights(syns,changes_matrix)
 end
 
+-- NLP Functions
 function gen_alphahot(input_letter,expected_output_letter)
 	-- Generate one-hot matrix input/outputs
-	for i=1,26 do
+	for i=1,#alphabet do
 		inp[1][i] = 0
 		if(al_num[i] == input_letter)then
 			inp[1][i]=1
 		end
 	end
-	for i=1,26 do
+	for i=1,#alphabet do
 		exp_out[1][i] = 0
 		if(al_num[i] == expected_output_letter)then
 			exp_out[1][i]=1
 		end
 	end
+end
+function gen_ff_alphahot(inp)
+	local onehottable = {}
+	for i=1,#alphabet do
+		onehottable[i] = 0
+		if(al_num[i] == inp)then
+			onehottable[i]=1
+		end
+	end
+	return onehottable
+end
+function ungen_ff_alphahot(input_table)
+	local letter = 0
+	local curvalue = 0
+	local cur_i = 0
+	for i=1,#alphabet do
+		if(input_table[i]>curvalue) then
+			curvalue = input_table[i]
+			cur_i = i 
+		end
+	end
+	return al_num[cur_i]
 end
