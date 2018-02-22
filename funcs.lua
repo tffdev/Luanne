@@ -1,13 +1,11 @@
-function sig(x)
-	return 1/(1+math.exp(-x))
+function round2(num, numDecimalPlaces)
+	num = num*(math.pow(10,numDecimalPlaces))
+	num = math.floor(num+0.5)
+	return num/(math.pow(10,numDecimalPlaces))
 end
 
-function dsig(x)
-	return sig(x)*(1-sig(x))
-end
-
-function relu(x)
-	if x < 0 then return 0 else return x end
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
 end
 
 function round(x)
@@ -16,14 +14,6 @@ function round(x)
 	else
 		return math.ceil(x)
 	end
-end
-
-function MSE(input,expected)
-	local total = 0
-	for i=1,#input do
-		total = total + (math.pow(input[i]-expected[i],2))/#input
-	end
-	return total
 end
 
 function inargs(tosearch)
@@ -76,7 +66,9 @@ m = {
 	dot = function(inp1,inp2)
 		local total = 0
 		if(#inp1~=#inp2) then return false end
-		for i=1,#inp1 do total = total + (inp1[i]*inp2[i]) end
+		for i=1,#inp1 do 
+			total = total + (inp1[i]*inp2[i])
+		end
 		return total
 	end,
 
@@ -85,7 +77,7 @@ m = {
 			for i=1,height do
 				local temp = {}
 				for j=1,width do
-					temp[j] = math.random(-1000000,1000000)/1000000
+					temp[j] = math.random()-0.5
 				end
 				table.insert(final, temp)
 			end
@@ -206,4 +198,9 @@ function getcontent(file)
     local content = f:read("*all")
     f:close()
     return content
+end
+
+function file_exists(name)
+   local f=io.open(name,"r")
+   if f~=nil then io.close(f) return true else return false end
 end

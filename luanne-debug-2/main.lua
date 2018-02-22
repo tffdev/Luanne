@@ -55,7 +55,7 @@ end
 function love.draw()
 	-- Node dragging
 	local mousex, mousey = love.mouse.getPosition()
-
+	
 	if love.mouse.isDown(3) then
 		for i=1,#node_table do
        		for j=1,#node_table[i] do
@@ -84,7 +84,8 @@ function love.draw()
 
 	-- DRAW
 	local err = errs/#inp
-	love.graphics.setColor(255*(err*255), 255/(err*255), 0, 255)
+	love.graphics.setColor(255*(err*255), 255/((err)*255), 0, 255)
+	love.graphics.setColor(255,255,255,255)
 	love.graphics.print("ERROR: "..err,15,10)
 
 	-- accuracy
@@ -117,8 +118,6 @@ function love.draw()
 	-- Reset nodes button
 	if (draw_button(400,5,110,25,"Reset Nodes")) then
 		resetnodes()
-		-- Actually reset values
-		-- syns = createStructure(STRUCTURE)
 	end
 	if (draw_button(400,35,110,25,"Turn off values")) then
 		show_values = false
