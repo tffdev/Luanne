@@ -1,9 +1,11 @@
 # Luann
 
-Pretty sure there's like 50 of these. Pretty sure none of them actually work also lol.
-Made this for an extended project qualification, the artefact itself wasn't reviewed but the research I did beforehand was. So feel free to use this for your 
-own stuff, or study it if you're working on your own project like this! It may look simple now but it took a surprising amount of work
-to figure out lmao.
+a series of small apps that accommodate a very simple machine learning library i made from scratch in lua for an extended project qualification while doing a-levels - the focus was on how they work primitively, and was closer to a mathematical research project than a compsci project.
 
-- made my own matrix library instead of using an external one, because it was fun
-- used a json lib for saving and loading synapse weight configurations
+these included the library itself, a visualiser made in love2d, a bunch of apps for translating images into unitary vectors, and a few dataset fetchers (just downloaded a ton of poetry from websites)
+
+part of the project was to also present this technology and explain it to a non-technical audience, in which i think i did successfully as maximum marks were awarded for this project.
+
+*While functional, this isn't practical for uses beyond this practice project.* This is here only to use as an example of the from-scratch programming of a simple perceptron in lua. Thank you!
+
+If you're looking for a ML framework for lua, please use [Torch]("http://torch.ch/")!
