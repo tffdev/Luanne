@@ -14,17 +14,23 @@ This does not have practical use outside of the research project, but if you'd l
 ## Preparing your image folder to be vectorised
 Run this command in your image folder, make sure to resize the images to 30x30
 and replacing `*.jpg` with whatever filetype the images are currently 
-```mogrify -format bmp -resize 30x30! *.jpg```
+```
+mogrify -format bmp -resize 30x30! *.jpg
+```
 
 ## Initialise project
 navigate to the "src" folder and run:
-```lua init.lua```
+```
+lua init.lua
+```
 There will be on-screen instructions to follow, name your project something simple (with no spaces or dashes etc)
 
 
 ## Learning
 Once you've initialised your new project, run:
-```luajit main.lua learn {name of your project}```
+```
+luajit main.lua learn {name of your project}
+```
 to learn from your given image datasets.
 
 ![](http://tfcat.me/files/luanneimages/screencap2.png)
@@ -33,7 +39,12 @@ to learn from your given image datasets.
 
 
 ## Testing
-To test a single vector file, run:
-```luajit main.lua do {name of your project} {name of the file}```
+To test a single BITMAP file (which must be 30x30):
+
+```
+luajit main.lua do {name of your project} {bitmap filepath}
+```
 
 ![](http://tfcat.me/files/luanneimages/screencap1.png)
+
+

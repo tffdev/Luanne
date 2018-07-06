@@ -14,12 +14,16 @@ math.randomseed(123)
 require("lib/funcs")
 require("lib/nnfuncs")
 require("deps/tablesave")
+local Bitmap = require("deps/bitmap")
 
 local savestate_name = arg[2]
 local loaded_config = table.load("../savestates/"..savestate_name.."/config")
-
+if(loaded_config == nil) then
+	print("Project "..savestate_name.." does not exist!")
+	os.exit()
+end
 -- To modify based on config
-STRUCTURE 				= {900, 18, 18, 2}
+STRUCTURE 				= {900, 18, 18, #loaded_config["images"]}
 learning_rate 			= tonumber(loaded_config["learning-rate"])
 momentum_multiplier		= tonumber(loaded_config["momentum"])
 save_per 				= tonumber(loaded_config["save-per-count"])
@@ -62,7 +66,27 @@ function main()
 		learningLoop()
 		print("Finished learning")
 	elseif(arg[1] == "do")then
-		local result = table.load(arg[3])
+
+		local img = Bitmap.from_file(arg[3])
+		if(not img) then
+			print("`"..arg[3].."` is not a valid bitmap")
+			os.exit()
+		end
+
+		local output_vector = {}
+		local fail = false
+		for i=1,30 do
+			for j=1,30 do
+				local pixel = {img:get_pixel(i,j)}
+				if(pixel[1] and pixel[2] and pixel[3]) then
+					table.insert(output_vector,((pixel[1]+pixel[2]+pixel[3])/3)/255)
+				else
+					fail = true
+				end
+			end
+		end
+
+		local result = output_vector
 		-- result is now vector table of 900 len
 		inp[1] = result
 		result = forward(inp[1])
@@ -79,9 +103,10 @@ function main()
 end
 
 function learningLoop()
+	config_data.step = config_data.step or 1
 	while(true) do
 		-- Generate data to pass through
-		config_data.step = config_data.step + 1
+		config_data.step = config_data.step + 1 
 
 		if(config_data.step >= 500) then config_data.step = 0 end
 
