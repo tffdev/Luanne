@@ -33,7 +33,7 @@ luajit main.lua learn {name of your project}
 ```
 to learn from your given image datasets.
 
-![](http://tfcat.me/files/luanneimages/screencap2.png)
+![](https://tfcat.me/files/luanneimages/screencap2.png)
 
 ***NOTE***: To safely exit the learning loop (as to not cancel while saving synapses), change the value in "status" to `0`, and the process will be cancelled on the next synapse save. 
 
@@ -45,6 +45,6 @@ To test a single BITMAP file (which must be 30x30):
 luajit main.lua do {name of your project} {bitmap filepath}
 ```
 
-![](http://tfcat.me/files/luanneimages/screencap1.png)
+![](https://tfcat.me/files/luanneimages/screencap1.png)
 
 
