@@ -1,0 +1,16 @@
+  _                                 
+ | |   _   _  __ _ _ __  _ __   ___ 
+ | |  | | | |/ _` | '_ \| '_ \ / _ \
+ | |__| |_| | (_| | | | | | | |  __/
+ |_____\__,_|\__,_|_| |_|_| |_|\___|
+======================================
+A mini neural net framework made by TFCAT
+for an a-level project.
+
+arguments:
+-h	help (shows this text)
+-s	show all steps (don't use with high iteration count!!)
+-sh	show start and end synapse values
+
+Synapse indexing is as follows: 
+	syns[weight layer][neuron_going_to][neuron_coming_from]
