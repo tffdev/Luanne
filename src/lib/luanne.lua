@@ -1,9 +1,10 @@
--- Parameters
+-- Allow our randomseed to be constant for easier debugging
+-- (Want to know that positive value changes are due to something *we've* done lol)
 math.randomseed(123)
 
 -- Requirements
-require("../lib/funcs")
-require("../deps/tablesave")
+require("../lib/utility")
+local matrix_utilities = require("../lib/matrix_lib")
 
 local luanne = {}
 
@@ -29,6 +30,10 @@ function luanne:new_network(structure)
 end
 
 -- Sigmoid/threshold functions
+-- Implementing Sigmoid functions into our nodes introduces
+-- non-linearity for our function approximation. 
+-- (Our approximated function can be a crazy wobbly line 
+-- rather than a straight knife-cut through an n-dimensional dataset)
 function luanne:sigmoid(x)
 	return 1/(1 + math.exp(-1 * x))
 end
@@ -41,11 +46,14 @@ function luanne:inverse_sig(x)
 	return -math.log((1/x) - 1)
 end
 
+-- *Very* basic threshold function that we aren't using
+-- but want to include just to be polite
 function luanne:relu(x)
 	if x < 0 then return 0 else return x end
 end
 
 -- Mean squared error algorithm
+-- Takes two vectors, calculates the average squared difference between each adjacent value
 function luanne:MSE(actual_value, expected_value)
 	local total = 0
 	for i = 1, #actual_value do
@@ -54,6 +62,8 @@ function luanne:MSE(actual_value, expected_value)
 	return total
 end
 
+-- Forward propagation
+-- Takes a vector input, performs a pass on the network and returns the output layer
 function luanne:forward(input)
 	-- set first node layer values to our vector input
 	self.nodes[1] = input
@@ -63,19 +73,19 @@ function luanne:forward(input)
 		self.nodes[s+1] = {}
 		for i = 1, #self.synapses[s] do
 			self.nodes[s+1][i] = luanne:sigmoid( 
-				m.dot(self.nodes[s], self.synapses[s][i]) )
+				matrix_utilities.dot(self.nodes[s], self.synapses[s][i]) )
 		end
 	end
 	return self.nodes[#self.nodes]
 end
 
+-- Backpropagate the final synapse layer (output layer) of the network.
+-- This layer should always be calculated first.
 function luanne:backpropagate_output_layer(actual_output, expected_output, ln_rate)
+	local err_num = {}
 	self.deltas = self.deltas or {}
-
-	-- CALCULATE LAST LAYER self.DELTAS
 	self.deltas[#self.synapses] = self.deltas[#self.synapses] or {}
 	self.gamma[#self.nodes] = {}
-	err_num = {}
 
 	-- For num of outputs
 	for i = 1, #self.nodes[#self.nodes] do 
@@ -85,7 +95,6 @@ function luanne:backpropagate_output_layer(actual_output, expected_output, ln_ra
 	for i = 1, #self.nodes[#self.nodes] do
 		self.gamma[#self.nodes][i] = err_num[i] * self:derivative_sigmoid( self:inverse_sig(actual_output[i]) )
 	end
-
 
 	-- update self.deltas
 	for i = 1, #self.nodes[#self.nodes] do 
@@ -101,35 +110,44 @@ function luanne:backpropagate_output_layer(actual_output, expected_output, ln_ra
 	-- Everything above works!! 
 end
 
-function luanne:backpropagate_hidden_layers(syn_lyr,ln_rate)
-	-- CALCULATE HIDDEN LAYER SELF.DELTAS
+-- Backpropagate the hidden synapse layers of the network.
+-- Should be calculated AFTER output layer backpropagation
+function luanne:backpropagate_hidden_layers(syn_layer, ln_rate)
 	-- current layer
-	self.gamma[syn_lyr+1] = {}
-	self.deltas[syn_lyr] = self.deltas[syn_lyr] or {}
+	self.gamma[syn_layer+1] = {}
+	self.deltas[syn_layer] = self.deltas[syn_layer] or {}
 
-	for i = 1, #self.nodes[syn_lyr+1] do
-		self.gamma[syn_lyr+1][i] = 0
+	for i = 1, #self.nodes[syn_layer+1] do
+		self.gamma[syn_layer+1][i] = 0
+		
 		-- self.gamma forward 
-		for j = 1, #self.gamma[syn_lyr+2] do
-			self.gamma[syn_lyr+1][i] = self.gamma[syn_lyr+1][i] + (self.gamma[syn_lyr+2][j] * self.synapses[syn_lyr+1][j][i])
+		for j = 1, #self.gamma[syn_layer+2] do
+			self.gamma[syn_layer+1][i] = 
+				self.gamma[syn_layer+1][i] 
+				+ (self.gamma[syn_layer+2][j] * self.synapses[syn_layer+1][j][i])
 		end
-		self.gamma[syn_lyr+1][i] = self.gamma[syn_lyr+1][i] *self:derivative_sigmoid(self:inverse_sig(self.nodes[syn_lyr+1][i]))
+
+		self.gamma[syn_layer+1][i] = 
+			self.gamma[syn_layer+1][i] * self:derivative_sigmoid(self:inverse_sig(self.nodes[syn_layer+1][i]))
 	end
 
 	-- update self.deltas
-	for i=1,#self.nodes[syn_lyr+1] do 
-		self.deltas[syn_lyr][i] = self.deltas[syn_lyr][i] or {}
-		for j=1,#self.nodes[syn_lyr] do
-			-- for every synapse
-			local previous_weights_for_momentum = self.deltas[syn_lyr][i][j] or 0
-			self.deltas[syn_lyr][i][j] = self.gamma[syn_lyr+1][i] * (self.nodes[syn_lyr][j]) + previous_weights_for_momentum * self.momentum_multiplier
+	for i=1,#self.nodes[syn_layer+1] do 
+		self.deltas[syn_layer][i] = self.deltas[syn_layer][i] or {}
+		
+		-- for every synapse
+		for j=1,#self.nodes[syn_layer] do
+			local previous_weights_for_momentum = self.deltas[syn_layer][i][j] or 0
+			self.deltas[syn_layer][i][j] = 
+				self.gamma[syn_layer+1][i] * (self.nodes[syn_layer][j]) 
+				+ previous_weights_for_momentum * self.momentum_multiplier
 		end
 	end
 
 	return self.deltas
 end
 
--- addition of two three-dimensional matrices
+-- Addition of 2 three-dimensional matrices
 function luanne:add_weights(m1, m2)
 	local output = {}
 	for i = 1, #m1 do
@@ -148,6 +166,8 @@ function luanne:add_weights(m1, m2)
 	return output
 end
 
+
+-- Subtraction of 2 three-dimensional matrices
 function luanne:subtract_weights(m1, m2)
 	local output = {}
 	for i = 1, #m1 do
@@ -166,71 +186,40 @@ function luanne:subtract_weights(m1, m2)
 	return output
 end
 
+-- Given a structure (e.g. {2,2,1}), will create 
+-- an array with an appropriate number of layers and depth
+-- that we can use as a holder for synapse weights.
+-- (fill_with_zeros should usually NOT be used)
 function luanne:create_synapse_structure(struct, fill_with_zeros)
 	fill_with_zeros = false or fill_with_zeros
 	local newstruct = {}
 	for w = 1, #struct - 1 do
 		if fill_with_zeros then 
-			newstruct[w] = m.zeros(struct[w], struct[w+1])
+			newstruct[w] = matrix_utilities.zeros(struct[w], struct[w+1])
 		else 
-			newstruct[w] = m.random(struct[w], struct[w+1])
+			newstruct[w] = matrix_utilities.random(struct[w], struct[w+1])
 		end
 	end
-	-- print("newstruct:")
-	-- print_r(newstruct)
 	return newstruct
 end
 
+-- Let our network perform a single iteration on
+-- a dataset input and output.
+-- The more often this is called with different data, the more 
+-- accurate the network will eventually be.
 function luanne:learn(input, expected_output)
-	local changes_matrix = self:create_synapse_structure(self.structure, true)
-
-	local errs = 0
-
 	local real_output = self:forward(input)
-	local mse = self:MSE(real_output, expected_output)
 
-	errs = errs + tonumber(mse)
-
+	-- backpropagate the final layer (output layer)
 	self:backpropagate_output_layer(real_output, expected_output, self.learning_rate)
 
+	-- backpropagate for all hidden layers
 	for layer = #self.synapses-1, 1, -1 do
 		self:backpropagate_hidden_layers(layer, self.learning_rate)
 	end
 
-	changes_matrix = self:add_weights(changes_matrix, self.deltas)
-
-	self.synapses = self:subtract_weights(self.synapses, changes_matrix)
-	return errs
+	self.synapses = self:subtract_weights(self.synapses, self.deltas)
+	return self:MSE(real_output, expected_output)
 end
 
 return luanne
-
--- NLP Functions
--- function luanne:gen_alphahot(stride,input_letters)
--- 	-- Generate one-hot matrix input/outputs
--- 	local result = {}
--- 	result[1] = {} -- this is the input
-
--- 	for stride_current=1,stride do
--- 		for i=1+#alphabet*(stride_current-1), #alphabet*stride_current do
--- 			result[1][i] = 0
--- 			if(alphabet_chars[i - #alphabet*(stride_current-1)] == string.sub(input_letters,stride_current,stride_current) )then
--- 				result[1][i]=1
--- 			end
--- 		end
--- 	end
--- 	return result
--- end
-
--- function luanne:ungen_ff_alphahot(input_table)
--- 	local letter = 0
--- 	local curvalue = 0
--- 	local cur_i = 0
--- 	for i=1,#alphabet do
--- 		if(input_table[i] > curvalue) then
--- 			curvalue = input_table[i]
--- 			cur_i = i 
--- 		end
--- 	end
--- 	return alphabet_chars[cur_i]
--- end

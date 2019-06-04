@@ -17,7 +17,7 @@ function main()
 	local nn = luanne:new_network( { 2, 2, 1 } )
 
 	for _ = 1, 300 do
-		
+
 		local err = 0
 		for _ = 1, 1000 do
 			err = err + nn:learn( { 0, 0 }, { 0 } )
@@ -39,10 +39,10 @@ function main()
 		end
 
 		screen:mvaddstr(9, 1, "Test Outputs:")
-		screen:mvaddstr(10, 1, "{0,0}: "..nn:forward({0, 0})[1])
-		screen:mvaddstr(11, 1, "{1,0}: "..nn:forward({1, 0})[1])
-		screen:mvaddstr(12, 1, "{0,1}: "..nn:forward({0, 1})[1])
-		screen:mvaddstr(13, 1, "{1,1}: "..nn:forward({1, 1})[1])
+		screen:mvaddstr(10, 1, "{0,0}: " .. nn:forward({0, 0})[1])
+		screen:mvaddstr(11, 1, "{1,0}: " .. nn:forward({1, 0})[1])
+		screen:mvaddstr(12, 1, "{0,1}: " .. nn:forward({0, 1})[1])
+		screen:mvaddstr(13, 1, "{1,1}: " .. nn:forward({1, 1})[1])
   		screen:refresh()
 	end
 end
