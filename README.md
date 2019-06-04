@@ -1,11 +1,16 @@
 # Luanne
-An ultra-minimal neural network library. If you can vectorise your data, you can make machines learn anything!
+An ultra-minimal neural network library. Function approximation for vectorised data!
+
+## Disclosure
+This library, in the context of many methods of machine learning, is extremely slow due to not having integration
+with parallel-processing hardware. However it was fast enough to use for an image classification program (classic cat-or-dog).
 
 ## Dependencies:
 * LuaJIT (For 100x the speed of Lua5.1)
 * luafilesystem `sudo luarocks install luafilesystem`
 
 ## Basic Usage
+Check the main.lua example file in src for more details
 
 ```lua
 local luanne = require("./lib/luanne")
