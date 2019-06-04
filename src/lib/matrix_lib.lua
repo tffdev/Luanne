@@ -1,6 +1,6 @@
 
 -- MATRIX LIBRARY, FOR MATRICES
-matrix_utilities = {
+local matrix_utilities = {
 	summate = function(array)
 		local total = 0
 		for i=1,#array do

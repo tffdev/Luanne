@@ -1,6 +1,10 @@
 # Luanne
 An ultra-minimal neural network library. If you can vectorise your data, you can make machines learn anything!
 
+# NOTE
+A recent large-scale refactor has left some significant logical errors.
+I'll be working on fixing this, but it will take a while.
+
 ## Dependencies:
 * luafilesystem `sudo luarocks install luafilesystem`
 

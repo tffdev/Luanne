@@ -112,34 +112,34 @@ end
 
 -- Backpropagate the hidden synapse layers of the network.
 -- Should be calculated AFTER output layer backpropagation
-function luanne:backpropagate_hidden_layers(syn_layer, ln_rate)
+function luanne:backpropagate_hidden_layers(L, ln_rate)
 	-- current layer
-	self.gamma[syn_layer+1] = {}
-	self.deltas[syn_layer] = self.deltas[syn_layer] or {}
+	self.gamma[L+1] = {}
+	self.deltas[L] = self.deltas[L] or {}
 
-	for i = 1, #self.nodes[syn_layer+1] do
-		self.gamma[syn_layer+1][i] = 0
+	for i = 1, #self.nodes[L+1] do
+		self.gamma[L+1][i] = 0
 		
 		-- self.gamma forward 
-		for j = 1, #self.gamma[syn_layer+2] do
-			self.gamma[syn_layer+1][i] = 
-				self.gamma[syn_layer+1][i] 
-				+ (self.gamma[syn_layer+2][j] * self.synapses[syn_layer+1][j][i])
+		for j = 1, #self.gamma[L+2] do
+			self.gamma[L+1][i] = 
+				self.gamma[L+1][i] 
+				+ (self.gamma[L+2][j] * self.synapses[L+1][j][i])
 		end
 
-		self.gamma[syn_layer+1][i] = 
-			self.gamma[syn_layer+1][i] * self:derivative_sigmoid(self:inverse_sig(self.nodes[syn_layer+1][i]))
+		self.gamma[L+1][i] = 
+			self.gamma[L+1][i] * self:derivative_sigmoid(self:inverse_sig(self.nodes[L+1][i]))
 	end
 
 	-- update self.deltas
-	for i=1,#self.nodes[syn_layer+1] do 
-		self.deltas[syn_layer][i] = self.deltas[syn_layer][i] or {}
+	for i=1,#self.nodes[L+1] do 
+		self.deltas[L][i] = self.deltas[L][i] or {}
 		
 		-- for every synapse
-		for j=1,#self.nodes[syn_layer] do
-			local previous_weights_for_momentum = self.deltas[syn_layer][i][j] or 0
-			self.deltas[syn_layer][i][j] = 
-				self.gamma[syn_layer+1][i] * (self.nodes[syn_layer][j]) 
+		for j=1,#self.nodes[L] do
+			local previous_weights_for_momentum = self.deltas[L][i][j] or 0
+			self.deltas[L][i][j] = 
+				self.gamma[L+1][i] * (self.nodes[L][j]) 
 				+ previous_weights_for_momentum * self.momentum_multiplier
 		end
 	end
@@ -155,11 +155,7 @@ function luanne:add_weights(m1, m2)
 		for j = 1, #m1[i] do
 			output[i][j] = {}
 			for k = 1, #m1[i][j] do
-				if(m2[i] ~= nil and m2[i][j] ~= nil and m2[i][j][k] ~= nil) then
-					output[i][j][k] = m1[i][j][k] + m2[i][j][k]
-				else
-					output[i][j][k] = m1[i][j][k]
-				end
+				output[i][j][k] = m1[i][j][k] + m2[i][j][k]
 			end
 		end
 	end
@@ -175,11 +171,7 @@ function luanne:subtract_weights(m1, m2)
 		for j = 1, #m1[i] do
 			output[i][j] = {}
 			for k = 1, #m1[i][j] do
-				if(m2[i] ~= nil and m2[i][j] ~= nil and m2[i][j][k] ~= nil) then
-					output[i][j][k] = m1[i][j][k]-m2[i][j][k] * self.learning_rate
-				else
-					output[i][j][k] = m1[i][j][k]
-				end
+				output[i][j][k] = m1[i][j][k]-m2[i][j][k] * self.learning_rate
 			end
 		end
 	end
