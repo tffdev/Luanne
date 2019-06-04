@@ -3,8 +3,10 @@
 -- ====================
 -- Contains things commonlu used debugging tools or anything 
 -- we'd use for our interface.
--- Also contains our matrix library, which should be moved to its own folder.
--- TODO: MOVE MATRIX LIBRARY
+
+function printf(...)
+    print(string.format(...))
+end
 
 function sleep(n)
   os.execute("sleep " .. tonumber(n))

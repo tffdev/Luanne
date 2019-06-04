@@ -1,17 +1,16 @@
 # Luanne
 An ultra-minimal neural network library. If you can vectorise your data, you can make machines learn anything!
 
-# NOTE
-A recent large-scale refactor has left some significant logical errors.
-I'll be working on fixing this, but it will take a while.
-
 ## Dependencies:
+* LuaJIT (For 100x the speed of Lua5.1)
 * luafilesystem `sudo luarocks install luafilesystem`
 
 ## Basic Usage
 
 ```lua
 local luanne = require("./lib/luanne")
+
+-- Learning XOR 
 
 function main()
 	local nn = luanne:new_network( { 2, 2, 1 } )

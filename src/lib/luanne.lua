@@ -8,16 +8,20 @@ local matrix_utilities = require("../lib/matrix_lib")
 
 local luanne = {}
 
-function luanne:new_network(structure) 
+
+-- Create a new network structure
+-- NOTE synapses are randomised between 0 and 1.
+-- Nodes do not need to be initialised.
+function luanne:new_network(structure, rate, momentum)
 	local nn = {}
 	setmetatable(nn, self)
 
 	-- set values for new network
 	self.__index 	= self
 	self.structure  = structure
-	self.synapses 	= luanne:create_synapse_structure(structure, true)
-	self.learning_rate = 0.03
-	self.momentum_multiplier = 0
+	self.synapses 	= luanne:create_synapse_structure(structure)
+	self.learning_rate = rate or 0.2
+	self.momentum_multiplier = momentum or 0
 
 	-- nil initialisations
 	self.gamma 		= {}
@@ -67,7 +71,6 @@ end
 function luanne:forward(input)
 	-- set first node layer values to our vector input
 	self.nodes[1] = input
-
 	-- for each layer of synapses
 	for s = 1, #self.synapses do
 		self.nodes[s+1] = {}
@@ -127,6 +130,8 @@ function luanne:backpropagate_hidden_layers(L, ln_rate)
 				+ (self.gamma[L+2][j] * self.synapses[L+1][j][i])
 		end
 
+		-- As nodes contain their values post-sigmoid, we have to 
+		-- invert the sigmoid function before deriving it
 		self.gamma[L+1][i] = 
 			self.gamma[L+1][i] * self:derivative_sigmoid(self:inverse_sig(self.nodes[L+1][i]))
 	end
@@ -182,15 +187,10 @@ end
 -- an array with an appropriate number of layers and depth
 -- that we can use as a holder for synapse weights.
 -- (fill_with_zeros should usually NOT be used)
-function luanne:create_synapse_structure(struct, fill_with_zeros)
-	fill_with_zeros = false or fill_with_zeros
+function luanne:create_synapse_structure(struct)
 	local newstruct = {}
 	for w = 1, #struct - 1 do
-		if fill_with_zeros then 
-			newstruct[w] = matrix_utilities.zeros(struct[w], struct[w+1])
-		else 
-			newstruct[w] = matrix_utilities.random(struct[w], struct[w+1])
-		end
+		newstruct[w] = matrix_utilities.random(struct[w], struct[w+1])
 	end
 	return newstruct
 end
@@ -199,6 +199,7 @@ end
 -- a dataset input and output.
 -- The more often this is called with different data, the more 
 -- accurate the network will eventually be.
+-- RETURNS the mean squared error for this iteration, can be used for analysis
 function luanne:learn(input, expected_output)
 	local real_output = self:forward(input)
 
