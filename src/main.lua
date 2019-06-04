@@ -2,159 +2,52 @@
 
 Micro Neural Net Framework [For Project 'NLPS', Daniel Brier]
 --------------------------------
-Synapse indexing is as follows:
-	syns[weight layer][going_to][coming_from]
 
+This file contains an example of machine learning the function
+XOR. XOR is popular as it can only be performed on a network
+with functional hidden layers.
+
+What we've done here is create a new network with an input vector 
+of length 2, an output vector of length 1,
+and a hidden layer of length 3.
+
+Our learning rate (the velocity of a synapse value "kick") 
+is 0.1, and Momentum is 0.03, both of which are sufficient for this small demo
+but usually, the values would be MUCH smaller than this.
 ]]--
 
--- Parameters
-math.randomseed(123)
-
--- Requirements
-require("lib/funcs")
-require("lib/nnfuncs")
-require("deps/tablesave")
-local Bitmap = require("deps/bitmap")
-
-local savestate_name = arg[2]
-local loaded_config = table.load("../savestates/"..savestate_name.."/config")
-if(loaded_config == nil) then
-	print("Project "..savestate_name.." does not exist!")
-	os.exit()
-end
--- To modify based on config
-STRUCTURE 				= {900, 18, 18, #loaded_config["images"]}
-learning_rate 			= tonumber(loaded_config["learning-rate"])
-momentum_multiplier		= tonumber(loaded_config["momentum"])
-save_per 				= tonumber(loaded_config["save-per-count"])
-
-
--- Declarations/inits
-syns 		= {}
-nodes 		= {}
-gamma 		= {}
-outputs 	= {}
-it_count	= 0
-inp 		= {{}}
-exp_out 	= {{}}
-config_data = {step=0}
-avg_error 	= 0
-
-if( not file_exists("../savestates/"..savestate_name.."/config")) then
-	print("project "..savestate_name.." does not exist!")
-	os.exit()
-end
-
-config_data = table.load("../savestates/"..savestate_name.."/config")
-
-if(config_data == nil) then 
-	print("config_data nil!") 
-end
-
--- Load previous weights, if any
-if(file_exists("../savestates/"..savestate_name.."/synapses")) then
-	syns = table.load("../savestates/"..savestate_name.."/synapses")
-else
-	print("Created new synapse database!")
-	syns = createStructure(STRUCTURE)
-	table.save(syns, "../savestates/"..savestate_name.."/synapses")
-end
-
-function main()
-	if(arg[1] == "learn")then
-		-- Loop for forever, until you cancel 
-		learningLoop()
-		print("Finished learning")
-	elseif(arg[1] == "do")then
-
-		local img = Bitmap.from_file(arg[3])
-		if(not img) then
-			print("`"..arg[3].."` is not a valid bitmap")
-			os.exit()
-		end
-
-		local output_vector = {}
-		local fail = false
-		for i=1,30 do
-			for j=1,30 do
-				local pixel = {img:get_pixel(i,j)}
-				if(pixel[1] and pixel[2] and pixel[3]) then
-					table.insert(output_vector,((pixel[1]+pixel[2]+pixel[3])/3)/255)
-				else
-					fail = true
-				end
-			end
-		end
-
-		local result = output_vector
-		-- result is now vector table of 900 len
-		inp[1] = result
-		result = forward(inp[1])
-		print_r(result)
-		local largest = {1,result[1]}
-		for i=2,#result do
-			if(result[i] > largest[2]) then
-				largest[1] = i
-				largest[2] = result[i]
-			end
-		end
-		print("Category: "..loaded_config["images"][largest[1]][2])
+local luanne = require("./lib/luanne")
+local nn = luanne:new_network( { 2, 3, 1 } , 0.1, 0.03)
+	
+-- Do 20 * 10,000 iterations, printing the average error every 10,000!
+for _ = 1, 20 do
+	local err = 0
+	for _ = 1, 10000 do
+		err = err + nn:learn( { 0, 0 }, { 0 } )
+		err = err + nn:learn( { 0, 1 }, { 1 } )
+		err = err + nn:learn( { 1, 1 }, { 0 } )
+		err = err + nn:learn( { 1, 0 }, { 1 } )
 	end
+	err = err / (4*1000)
+	print(string.format("Average error: %0.5f", err))
 end
 
-function learningLoop()
-	config_data.step = config_data.step or 1
-	while(true) do
-		-- Generate data to pass through
-		config_data.step = config_data.step + 1 
 
-		if(config_data.step >= 500) then config_data.step = 0 end
+-- nn:forward takes an input vector, performs a pass on your network
+-- and returns an output vector! This is your generated function.
+test_result_string = [[
+--------------------
+Results of XOR Test!
+{0,0} = %.5f, Expected ~(0)
+{0,1} = %.5f, Expected ~(1)
+{1,0} = %.5f, Expected ~(1)
+{1,1} = %.5f, Expected ~(0)
+]]
 
-		for i=1,#loaded_config["images"] do
-			-- DO PASS ON A CAT
-			input_file = table.load("../savestates/"..savestate_name.."/"..loaded_config["images"][i][2].."/"..config_data.step)
-			if(input_file ~= nil) then
-				-- result is now vector table
-				inp[1] = input_file
-				-- print_r(inp)
-				exp_out = {{0,0}}
-				exp_out[1][i] = 1
-				--[[ 
-					PERFORM PASS ON NETWORK
-					"fullpass" performs a pass on globals, and then
-					returns the mean squared error
-				--]] 
-				avg_error = avg_error + fullpass()/#inp
-
-				syns = subweights(syns,changes_matrix)
-			end
-		end
-
-		-- One iteration is both a cat and dog pass. 2 full passes thorugh the network
-		it_count = it_count + 1
-		-- print(avg_error)
-		-- When the status printing criteria is met
-		if(it_count == save_per) then
-			-- Tell the user what the error is
-			print("Average Error over dataset: "..tonumber(avg_error/it_count),"(Weights saved)","Step "..config_data.step)
-			saveSynapses()
-		end
-	end
-end
-
-function saveSynapses()
-	-- Save the synapse tables
-	table.save(syns,"../savestates/"..savestate_name.."/synapses")
-	table.save(config_data,"../savestates/"..savestate_name.."/config")
-
-	-- Reset stats
-	avg_error = 0
-	it_count = 0
-
-	if(getcontent("status") == "0")then
-		print("Safely exiting...")
-		os.exit()
-	end
-end
-
-main()
+printf(
+	test_result_string,
+	nn:forward({0,0})[1],
+	nn:forward({0,1})[1],
+	nn:forward({1,0})[1],
+	nn:forward({1,1})[1]
+)

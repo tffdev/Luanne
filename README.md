@@ -1,50 +1,34 @@
 # Luanne
-a series of small apps that accommodate a very simple image classification machine learning library.
+An ultra-minimal neural network library. Function approximation for vectorised data!
 
-This does not have practical use outside of the research project, but if you'd like to play with/modify it, feel free!
+## Disclosure
+This library, in the context of many methods of machine learning, is extremely slow due to not having integration
+with parallel-processing hardware. However it was fast enough to use for an image classification program (classic cat-or-dog).
 
-### Dependencies:
+## Dependencies:
+* LuaJIT (For 100x the speed of Lua5.1)
 * luafilesystem `sudo luarocks install luafilesystem`
 
-### Limitations 
-* Currently can only convert BITMAP images to vector files
+## Basic Usage
+Check the main.lua example file in src for more details
 
-# Running the Project
+```lua
+local luanne = require("./lib/luanne")
 
-## Preparing your image folder to be vectorised
-Run this command in your image folder, make sure to resize the images to 30x30
-and replacing `*.jpg` with whatever filetype the images are currently 
+-- Learning XOR 
+
+function main()
+	local nn = luanne:new_network( { 2, 2, 1 } )
+	for _ = 1, 1000 do
+		nn:learn( { 0, 0 }, { 0 } )
+		nn:learn( { 0, 1 }, { 1 } )
+		nn:learn( { 1, 1 }, { 0 } )
+		nn:learn( { 1, 0 }, { 1 } )
+	end
+
+	-- Test
+	print("Output for {1,0}: " .. nn:forward({ 1, 0 })[1])
+end
+
+main()
 ```
-mogrify -format bmp -resize 30x30! *.jpg
-```
-
-## Initialise project
-navigate to the "src" folder and run:
-```
-lua init.lua
-```
-There will be on-screen instructions to follow, name your project something simple (with no spaces or dashes etc)
-
-
-## Learning
-Once you've initialised your new project, run:
-```
-luajit main.lua learn {name of your project}
-```
-to learn from your given image datasets.
-
-![](https://tfcat.me/files/luanneimages/screencap2.png)
-
-***NOTE***: To safely exit the learning loop (as to not cancel while saving synapses), change the value in "status" to `0`, and the process will be cancelled on the next synapse save. 
-
-
-## Testing
-To test a single BITMAP file (which must be 30x30):
-
-```
-luajit main.lua do {name of your project} {bitmap filepath}
-```
-
-![](https://tfcat.me/files/luanneimages/screencap1.png)
-
-
