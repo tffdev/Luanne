@@ -6,8 +6,7 @@ This library, in the context of many methods of machine learning, is extremely s
 with parallel-processing hardware. However it was fast enough to use for an image classification program (classic cat-or-dog).
 
 ## Dependencies:
-* LuaJIT (For 100x the speed of Lua5.1)
-* luafilesystem `sudo luarocks install luafilesystem`
+* (optional) LuaJIT (For 100x the speed of Lua5.1)
 
 ## Basic Usage
 Check the main.lua example file in src for more details
