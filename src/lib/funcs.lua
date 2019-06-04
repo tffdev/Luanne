@@ -193,7 +193,7 @@ function die ()
   os.exit(1)
 end
 
-function getcontent(file)
+function read_file(file)
 	local f = io.open(file, "r")
     local content = f:read("*all")
     f:close()

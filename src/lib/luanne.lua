@@ -13,29 +13,31 @@ function luanne:new_network(structure)
 
 	-- set values for new network
 	self.__index 	= self
-	self.syns 		= {}
+	self.structure  = structure
+	self.synapses 	= luanne:create_synapse_structure(structure, true)
+	self.learning_rate = 0.03
+	self.momentum_multiplier = 0
+
+	-- nil initialisations
 	self.gamma 		= {}
 	self.output 	= {}
 	self.input 		= {}
 	self.exp_out 	= {}
-	self.learning_rate = 0.1
-	self.momentum_multiplier = 0
-	self.structure  = structure
-	self.nodes 		= luanne:create_structure(structure, true)
+	self.nodes 		= {}
 
 	return nn
 end
 
--- mathematics functions
-function luanne:sig(x)
+-- Sigmoid/threshold functions
+function luanne:sigmoid(x)
 	return 1/(1 + math.exp(-1 * x))
 end
 
-function luanne:dsig(x)
-	return sig(x)*(1-sig(x))
+function luanne:derivative_sigmoid(x)
+	return self:sigmoid(x)*(1-self:sigmoid(x))
 end
 
-function luanne:sig_inv(x)
+function luanne:inverse_sig(x)
 	return -math.log((1/x) - 1)
 end
 
@@ -43,6 +45,7 @@ function luanne:relu(x)
 	if x < 0 then return 0 else return x end
 end
 
+-- Mean squared error algorithm
 function luanne:MSE(actual_value, expected_value)
 	local total = 0
 	for i = 1, #actual_value do
@@ -51,53 +54,54 @@ function luanne:MSE(actual_value, expected_value)
 	return total
 end
 
--- LOGIC
 function luanne:forward(input)
-	-- CHECK THIS FUNCTION WITH NEW SYNAPSE STRUCTURE
-	local final_output = {}
+	-- set first node layer values to our vector input
 	self.nodes[1] = input
 
 	-- for each layer of synapses
-	for s = 1, #self.syns do
+	for s = 1, #self.synapses do
 		self.nodes[s+1] = {}
-		for i = 1, #self.syns[s] do
-			self.nodes[s+1][i] = sig( m.dot(self.nodes[s], self.syns[s][i]) )
+		for i = 1, #self.synapses[s] do
+			self.nodes[s+1][i] = luanne:sigmoid( 
+				m.dot(self.nodes[s], self.synapses[s][i]) )
 		end
 	end
-
-	final_output = self.nodes[#self.nodes]
-	return final_output
+	return self.nodes[#self.nodes]
 end
 
-function luanne:backward_output(actual_output, expected_output, ln_rate)
+function luanne:backpropagate_output_layer(actual_output, expected_output, ln_rate)
 	self.deltas = self.deltas or {}
 
 	-- CALCULATE LAST LAYER self.DELTAS
-	self.deltas[#self.syns] = self.deltas[#self.syns] or {}
+	self.deltas[#self.synapses] = self.deltas[#self.synapses] or {}
 	self.gamma[#self.nodes] = {}
 	err_num = {}
+
 	-- For num of outputs
 	for i = 1, #self.nodes[#self.nodes] do 
 		err_num[i] = actual_output[i] - expected_output[i]
 	end
 	
-	for i = 1, #self.nodes[#self.nodes] do 	
-		self.gamma[#self.nodes][i] = err_num[i] * self.dsig( self.sig_inv(actual_output[i]) )
+	for i = 1, #self.nodes[#self.nodes] do
+		self.gamma[#self.nodes][i] = err_num[i] * self:derivative_sigmoid( self:inverse_sig(actual_output[i]) )
 	end
+
 
 	-- update self.deltas
 	for i = 1, #self.nodes[#self.nodes] do 
-		self.deltas[#self.syns][i] = self.deltas[#self.syns][i] or {}
+		self.deltas[#self.synapses][i] = self.deltas[#self.synapses][i] or {}
 		for j = 1, #self.nodes[#self.nodes-1] do
-			local previous_weights_for_momentum = self.deltas[#self.syns][i][j] or 0
-			self.deltas[#self.syns][i][j] = self.gamma[#self.nodes][i] * (self.nodes[#self.nodes-1][j]) + previous_weights_for_momentum * self.momentum_multiplier
-			-- this is extremely retarded
+			local previous_weights_for_momentum = self.deltas[#self.synapses][i][j] or 0
+			
+			self.deltas[#self.synapses][i][j] = 
+				self.gamma[#self.nodes][i] * (self.nodes[#self.nodes-1][j]) 
+				+ previous_weights_for_momentum * self.momentum_multiplier
 		end
 	end
-	-- Everything above works!! leave it alone jesus christ
+	-- Everything above works!! 
 end
 
-function luanne:backward_hidden(syn_lyr,ln_rate)
+function luanne:backpropagate_hidden_layers(syn_lyr,ln_rate)
 	-- CALCULATE HIDDEN LAYER SELF.DELTAS
 	-- current layer
 	self.gamma[syn_lyr+1] = {}
@@ -107,9 +111,9 @@ function luanne:backward_hidden(syn_lyr,ln_rate)
 		self.gamma[syn_lyr+1][i] = 0
 		-- self.gamma forward 
 		for j = 1, #self.gamma[syn_lyr+2] do
-			self.gamma[syn_lyr+1][i] = self.gamma[syn_lyr+1][i] + (self.gamma[syn_lyr+2][j] * self.syns[syn_lyr+1][j][i])
+			self.gamma[syn_lyr+1][i] = self.gamma[syn_lyr+1][i] + (self.gamma[syn_lyr+2][j] * self.synapses[syn_lyr+1][j][i])
 		end
-		self.gamma[syn_lyr+1][i] = self.gamma[syn_lyr+1][i] *self.dsig(self.sig_inv(self.nodes[syn_lyr+1][i]))
+		self.gamma[syn_lyr+1][i] = self.gamma[syn_lyr+1][i] *self:derivative_sigmoid(self:inverse_sig(self.nodes[syn_lyr+1][i]))
 	end
 
 	-- update self.deltas
@@ -152,7 +156,7 @@ function luanne:subtract_weights(m1, m2)
 			output[i][j] = {}
 			for k = 1, #m1[i][j] do
 				if(m2[i] ~= nil and m2[i][j] ~= nil and m2[i][j][k] ~= nil) then
-					output[i][j][k] = m1[i][j][k]-m2[i][j][k] * learning_rate
+					output[i][j][k] = m1[i][j][k]-m2[i][j][k] * self.learning_rate
 				else
 					output[i][j][k] = m1[i][j][k]
 				end
@@ -162,24 +166,23 @@ function luanne:subtract_weights(m1, m2)
 	return output
 end
 
-function luanne:create_structure(struct, fill_with_zeros)
+function luanne:create_synapse_structure(struct, fill_with_zeros)
 	fill_with_zeros = false or fill_with_zeros
 	local newstruct = {}
-	if(fill_with_zeros) then
-		for w = 1, #struct - 1 do
+	for w = 1, #struct - 1 do
+		if fill_with_zeros then 
 			newstruct[w] = m.zeros(struct[w], struct[w+1])
-		end
-		return newstruct
-	else
-		for w=1, #struct - 1 do
+		else 
 			newstruct[w] = m.random(struct[w], struct[w+1])
 		end
-		return newstruct
 	end
+	-- print("newstruct:")
+	-- print_r(newstruct)
+	return newstruct
 end
 
 function luanne:learn(input, expected_output)
-	local changes_matrix = self:create_structure(self.structure, true)
+	local changes_matrix = self:create_synapse_structure(self.structure, true)
 
 	local errs = 0
 
@@ -188,17 +191,15 @@ function luanne:learn(input, expected_output)
 
 	errs = errs + tonumber(mse)
 
-	backward_output(real_output, expected_output, learning_rate)
+	self:backpropagate_output_layer(real_output, expected_output, self.learning_rate)
 
-	for layer = #self.syns-1, 1, -1 do
-		backward_hidden(layer, learning_rate)
+	for layer = #self.synapses-1, 1, -1 do
+		self:backpropagate_hidden_layers(layer, self.learning_rate)
 	end
 
-	changes_matrix = add_weights(changes_matrix, self.deltas)
+	changes_matrix = self:add_weights(changes_matrix, self.deltas)
 
-
-	self.syns = subtract_weights(self.syns, changes_matrix)
-
+	self.synapses = self:subtract_weights(self.synapses, changes_matrix)
 	return errs
 end
 
