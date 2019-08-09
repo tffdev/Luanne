@@ -9,10 +9,10 @@ with parallel-processing hardware. However it was fast enough to use for an imag
 * (optional) LuaJIT (For 100x the speed of Lua5.1)
 
 ## Basic Usage
-Check the main.lua example file in src for more details
+Check the test.lua example file in src for more details
 
 ```lua
-local luanne = require("./lib/luanne")
+local luanne = require("luanne")
 
 -- Learning XOR 
 

@@ -16,7 +16,7 @@ is 0.1, and Momentum is 0.03, both of which are sufficient for this small demo
 but usually, the values would be MUCH smaller than this.
 ]]--
 
-local luanne = require("./lib/luanne")
+local luanne = require("luanne")
 local nn = luanne:new_network( { 2, 3, 1 } , 0.1, 0.03)
 	
 -- Do 20 * 10,000 iterations, printing the average error every 10,000!
@@ -28,26 +28,22 @@ for _ = 1, 20 do
 		err = err + nn:learn( { 1, 1 }, { 0 } )
 		err = err + nn:learn( { 1, 0 }, { 1 } )
 	end
-	err = err / (4*1000)
+	err = err / (20*1000)
 	print(string.format("Average error: %0.5f", err))
 end
 
 
 -- nn:forward takes an input vector, performs a pass on your network
 -- and returns an output vector! This is your generated function.
-test_result_string = [[
---------------------
+print(string.format(
+[[--------------------
 Results of XOR Test!
-{0,0} = %.5f, Expected ~(0)
-{0,1} = %.5f, Expected ~(1)
-{1,0} = %.5f, Expected ~(1)
-{1,1} = %.5f, Expected ~(0)
-]]
-
-printf(
-	test_result_string,
-	nn:forward({0,0})[1],
-	nn:forward({0,1})[1],
-	nn:forward({1,0})[1],
-	nn:forward({1,1})[1]
+{0,0} = %.1f	Expected ~(0.0)
+{0,1} = %.1f	Expected ~(1.0)
+{1,0} = %.1f	Expected ~(1.0)
+{1,1} = %.1f	Expected ~(0.0)]],
+nn:forward({0,0})[1],
+nn:forward({0,1})[1],
+nn:forward({1,0})[1],
+nn:forward({1,1})[1])
 )
