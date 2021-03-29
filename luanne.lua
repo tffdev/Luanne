@@ -1,7 +1,3 @@
--- Allow our randomseed to be constant for easier debugging
--- (Want to know that positive value changes are due to something *we've* done lol)
-math.randomseed(123)
-
 -- MATRIX LIBRARY
 -- ====================
 -- All the matrix math we need
