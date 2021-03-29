@@ -8,7 +8,7 @@ with parallel-processing hardware, however it is fast enough for simple use case
 ## Basic Usage
 
 `local my_network = luanne:new_network(STRUCTURE, LEARNING RATE, MOMENTUM)` 
-- **STRUCTURE**: a table. FIRST ENTRY MUST EQUAL INPUT SIZE, LAST ENTRY MUST EQUAL OUTPUT SIZE. E.g. XOR takes 2 inputs, 1 output. Structure must be {2, ..., 1}
+- **STRUCTURE**: a table that represents your network's structure. Each number = how many nodes that layer contains. FIRST ENTRY MUST EQUAL INPUT SIZE, LAST ENTRY MUST EQUAL OUTPUT SIZE. E.g. XOR takes 2 inputs, 1 output. Structure must be {2, ..., 1}
 - **LEARNING RATE**: a small number, usually 0.01. This is how far each learning iteration "kicks" the network's weights.
 - **MOMENTUM**: a small number between 0.0 and 1.0. This is how much the previous iteration influences the next iteration.
 
